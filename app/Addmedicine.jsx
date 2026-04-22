@@ -34,86 +34,118 @@ export default function AddMedicine() {
   const [qty, setQty] = useState("");
   const [alertQty, setAlertQty] = useState("10");
 
- const pickImage = async () => {
-  Alert.alert(
-    "Upload Image",
-    "Choose image source",
-    [
-      {
-        text: "Camera",
-        onPress: openCamera,
-      },
-      {
-        text: "Gallery",
-        onPress: openGallery,
-      },
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-    ]
-  );
-};
-
-const openGallery = async () => {
-  const permission =
-    await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-  if (!permission.granted) {
-    alert("Please allow gallery permission");
-    return;
-  }
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    setImage(result.assets[0].uri);
-  }
-};
-
-const openCamera = async () => {
-  const permission =
-    await ImagePicker.requestCameraPermissionsAsync();
-
-  if (!permission.granted) {
-    alert("Please allow camera permission");
-    return;
-  }
-
-  const result = await ImagePicker.launchCameraAsync({
-    allowsEditing: true,
-    quality: 1,
-  });
-
-  if (!result.canceled) {
-    setImage(result.assets[0].uri);
-  }
-};
-
- const handleRegister = () => {
-  if (
-    !medicineName ||
-    !type ||
-    !category ||
-    !expirydate ||
-    !totalQuantity
-  ) {
+  const pickImage = async () => {
     Alert.alert(
-      "Required Fields",
-      "Please fill all fields"
+      "Upload Image",
+      "Choose image source",
+      [
+        {
+          text: "Camera",
+          onPress: openCamera,
+        },
+        {
+          text: "Gallery",
+          onPress: openGallery,
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ]
     );
-    return;
-  }
+  };
 
-  Alert.alert(
-    "Success",
-    "Medicine Registered Successfully 🎉"
-  );
-};
+  const openGallery = async () => {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      alert("Please allow gallery permission");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const openCamera = async () => {
+    const permission =
+      await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!permission.granted) {
+      alert("Please allow camera permission");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const handleRegister = () => {
+    if (
+      !medicineName ||
+      !type ||
+      !category ||
+      !expirydate ||
+      !totalQuantity
+    ) {
+      Alert.alert(
+        "Required Fields",
+        "Please fill all fields"
+      );
+      return;
+    }
+ router.push({
+    pathname: "/ReviewMedicine",
+    params: {
+      medicineName,
+      type,
+      category,
+      expirydate,
+      manufacturingdate,
+      totalQuantity,
+      minimumStock,
+      buyPrice,
+      sellPrice,
+    },
+  });
+  //   Alert.alert(
+  //     "Success",
+  //     "Medicine Registered Successfully 🎉",
+  //   [
+  //     {
+  //       text: "OK",
+  //       onPress: () => {
+  //         setImage(null);
+  //         setMedicineName("");
+  //         setType("");
+  //         setCategory("");
+  //         setExpirydate("");
+  //         setManufacturingdate("");
+  //         setTotalQuantity("");
+  //         setMinimumStock("");
+  //         setBuyPrice("");
+  //         setSellPrice("");
+  //         setQty("");
+  //         setAlertQty("10");
+  //       },
+  //     },
+  //   ]
+  // );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -214,6 +246,7 @@ const openCamera = async () => {
           <TextInput
             style={styles.input}
             placeholder="YYYY-MM-DD"
+            value={manufacturingdate}
             onChangeText={setManufacturingdate}
           />
 
@@ -336,7 +369,7 @@ const openCamera = async () => {
       {/* Bottom Button */}
       <View style={styles.footer}>
         <TouchableOpacity activeOpacity={0.9}
-        onPress={handleRegister}
+          onPress={handleRegister}
         >
           <LinearGradient
             colors={["#004AC6", "#2563EB"]}
@@ -348,9 +381,9 @@ const openCamera = async () => {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-    
-  );
 
+  );
+}
 
 const styles = StyleSheet.create({
 
@@ -619,11 +652,11 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
 
-previewImage: {
-  width: "100%",
-  height: "100%",
-  resizeMode: "cover",
-},
+  previewImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
 
 });
-}
+
