@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 
-export default function index() {
+export default function Index() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,16 +48,16 @@ export default function index() {
         onChangeText={setPassword}
       />
 
-   <TouchableOpacity
-  style={[styles.button, loading && { opacity: 0.7 }]}
-  onPress={handleLogin}
-  disabled={loading}
->
-  <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
-</TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.button, loading && { opacity: 0.7 }]}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.buttonText}>{loading ? 'Logging in...' : 'Login'}</Text>
+      </TouchableOpacity>
 
       {/* Footer */}
-      <Text style={styles.footerText}>Don't have an account? Register</Text>
+      <Text style={styles.footerText}>Don&apos;t have an account? Register</Text>
 
     </View>
   );
