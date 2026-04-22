@@ -36,7 +36,7 @@ export default function ReviewMedicine() {
 
   const handleSave = () => {
     alert("Medicine Saved Successfully ✅");
-    router.push("/Dashboard");
+    router.push("/Addmedicine");
   };
 
   return (

@@ -108,43 +108,52 @@ export default function AddMedicine() {
       );
       return;
     }
- router.push({
-    pathname: "/ReviewMedicine",
-    params: {
-      medicineName,
-      type,
-      category,
-      expirydate,
-      manufacturingdate,
-      totalQuantity,
-      minimumStock,
-      buyPrice,
-      sellPrice,
-    },
-  });
-  //   Alert.alert(
-  //     "Success",
-  //     "Medicine Registered Successfully 🎉",
-  //   [
-  //     {
-  //       text: "OK",
-  //       onPress: () => {
-  //         setImage(null);
-  //         setMedicineName("");
-  //         setType("");
-  //         setCategory("");
-  //         setExpirydate("");
-  //         setManufacturingdate("");
-  //         setTotalQuantity("");
-  //         setMinimumStock("");
-  //         setBuyPrice("");
-  //         setSellPrice("");
-  //         setQty("");
-  //         setAlertQty("10");
-  //       },
-  //     },
-  //   ]
-  // );
+    router.push({
+      pathname: "/ReviewMedicine",
+      params: {
+        medicineName,
+        type,
+        category,
+        expirydate,
+        manufacturingdate,
+        totalQuantity,
+        minimumStock,
+        buyPrice,
+        sellPrice,
+      },
+    });
+
+    Alert.alert(
+      "Success",
+      "Medicine Registered Successfully 🎉",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            setImage(null);
+            setMedicineName("");
+            setType("");
+            setCategory("");
+            setExpirydate("");
+            setManufacturingdate("");
+            setTotalQuantity("");
+            setMinimumStock("");
+            setBuyPrice("");
+            setSellPrice("");
+            setQty("");
+            setAlertQty("10");
+          },
+        },
+      ]
+
+
+      [{
+        text: "OK",
+        onPress: () => {
+          router.push("/ReviewMedicine");
+        }
+      }]
+    );
   };
 
   return (
@@ -246,7 +255,6 @@ export default function AddMedicine() {
           <TextInput
             style={styles.input}
             placeholder="YYYY-MM-DD"
-            value={manufacturingdate}
             onChangeText={setManufacturingdate}
           />
 
@@ -355,8 +363,6 @@ export default function AddMedicine() {
               onChangeText={setAlertQty}
             />
           </View>
-
-          <Text style={styles.label}>Expiry Date</Text>
           {/* <TextInput
             style={styles.input}
             placeholder="YYYY-MM-DD"
@@ -659,4 +665,3 @@ const styles = StyleSheet.create({
   },
 
 });
-
