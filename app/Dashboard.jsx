@@ -21,7 +21,7 @@ export default function Dashboard() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.greeting}>Welcome 👋</Text>
-          <Text style={styles.title}>Medical Billing Dashboard</Text>
+          <Text style={styles.title}>Anam Medico</Text>
         </View>
 
         {/* Sales Summary */}
