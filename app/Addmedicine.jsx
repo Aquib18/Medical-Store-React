@@ -96,6 +96,7 @@ export default function AddMedicine() {
     }
   };
 
+  
   const handleRegister = async () => {
     if (
       !medicineName ||

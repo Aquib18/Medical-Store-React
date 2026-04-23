@@ -110,7 +110,7 @@ export default function LowStock() {
                 >
                     <TouchableOpacity
                         onPress={() =>
-                            router.back()
+                            router.replace("/Dashboard")
                         }
                     >
                         <MaterialIcons
@@ -162,7 +162,7 @@ export default function LowStock() {
                 </View>
 
                 {/* List */}
-              // REPLACE only List map section with this code
+            
 
 {medicines.map((item, index) => (
   <TouchableOpacity
