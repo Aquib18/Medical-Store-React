@@ -16,6 +16,8 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { db } from "../firebaseConfig";
+import { addDoc, collection } from "firebase/firestore";
 
 export default function AddMedicine() {
   const router = useRouter();
@@ -94,20 +96,20 @@ export default function AddMedicine() {
     }
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (
       !medicineName ||
       !type ||
       !category ||
-      !expirydate ||
-      !totalQuantity
+      !expirydate
     ) {
       Alert.alert(
-        "Required Fields",
-        "Please fill all fields"
+        "Required",
+        "Please fill all required fields"
       );
       return;
     }
+
     router.push({
       pathname: "/ReviewMedicine",
       params: {
@@ -120,41 +122,74 @@ export default function AddMedicine() {
         minimumStock,
         buyPrice,
         sellPrice,
+        qty,
+        alertQty,
+        image,
       },
     });
-
-    Alert.alert(
-      "Success",
-      "Medicine Registered Successfully 🎉",
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            setImage(null);
-            setMedicineName("");
-            setType("");
-            setCategory("");
-            setExpirydate("");
-            setManufacturingdate("");
-            setTotalQuantity("");
-            setMinimumStock("");
-            setBuyPrice("");
-            setSellPrice("");
-            setQty("");
-            setAlertQty("10");
-          },
-        },
-      ]
-
-
-      [{
-        text: "OK",
-        onPress: () => {
-          router.push("/ReviewMedicine");
-        }
-      }]
-    );
   };
+
+  // const handleRegister = () => {
+  //   if (
+  //     !medicineName ||
+  //     !type ||
+  //     !category ||
+  //     !expirydate ||
+  //     !totalQuantity
+  //   ) {
+  //     Alert.alert(
+  //       "Required Fields",
+  //       "Please fill all fields"
+  //     );
+  //     return;
+  //   }
+  //   router.push({
+  //     pathname: "/ReviewMedicine",
+  //     params: {
+  //       medicineName,
+  //       type,
+  //       category,
+  //       expirydate,
+  //       manufacturingdate,
+  //       totalQuantity,
+  //       minimumStock,
+  //       buyPrice,
+  //       sellPrice,
+  //     },
+  //   });
+
+  //   Alert.alert(
+  //     "Success",
+  //     "Medicine Registered Successfully 🎉",
+  //     [
+  //       {
+  //         text: "OK",
+  //         onPress: () => {
+  //           setImage(null);
+  //           setMedicineName("");
+  //           setType("");
+  //           setCategory("");
+  //           setExpirydate("");
+  //           setManufacturingdate("");
+  //           setTotalQuantity("");
+  //           setMinimumStock("");
+  //           setBuyPrice("");
+  //           setSellPrice("");
+  //           setQty("");
+  //           setAlertQty("10");
+  //         },
+  //       },
+  //     ]
+
+
+  //     [{
+  //       text: "OK",
+  //       onPress: () => {
+  //         router.push("/ReviewMedicine");
+  //       }
+  //     }]
+  //   );
+  // };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -219,6 +254,7 @@ export default function AddMedicine() {
           <TextInput
             style={styles.input}
             placeholder="e.g. Amoxicillin 500mg"
+            placeholderTextColor="#6B7280"
             value={medicineName}
             onChangeText={setMedicineName}
           />
@@ -228,6 +264,7 @@ export default function AddMedicine() {
           <TextInput
             style={styles.input}
             placeholder="Tablet / Syrup / Capsule"
+            placeholderTextColor="#6B7280"
             value={type}
             onChangeText={setType}
           />
@@ -237,31 +274,80 @@ export default function AddMedicine() {
           <TextInput
             style={styles.input}
             placeholder="Antibiotic / Fever / Painkiller"
+            placeholderTextColor="#6B7280"
             value={category}
             onChangeText={setCategory}
           />
 
           {/* Expiry Date */}
+          {/* <Text style={styles.label}>Expiry Date</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="DD-MM-YYYY"
+            placeholderTextColor="#6B7280"
+            value={expirydate}
+            onChangeText={setExpirydate}
+          /> */}
           <Text style={styles.label}>Expiry Date</Text>
           <TextInput
             style={styles.input}
-            placeholder="YYYY-MM-DD"
+            placeholder="DD-MM-YYYY"
+            placeholderTextColor="#6B7280"
+            keyboardType="number-pad"
+            maxLength={10}
             value={expirydate}
-            onChangeText={setExpirydate}
+            onChangeText={(text) => {
+              let cleaned = text.replace(/\D/g, "");
+
+              if (cleaned.length > 2)
+                cleaned =
+                  cleaned.slice(0, 2) +
+                  "-" +
+                  cleaned.slice(2);
+
+              if (cleaned.length > 5)
+                cleaned =
+                  cleaned.slice(0, 5) +
+                  "-" +
+                  cleaned.slice(5, 9);
+
+              setExpirydate(cleaned);
+            }}
           />
 
           {/* Manufacturing Date */}
           <Text style={styles.label}>Manufacturing Date</Text>
           <TextInput
             style={styles.input}
-            placeholder="YYYY-MM-DD"
-            onChangeText={setManufacturingdate}
+            placeholder="DD-MM-YYYY"
+            placeholderTextColor="#6B7280"
+            keyboardType="number-pad"
+            maxLength={10}
+            value={manufacturingdate}
+            onChangeText={(text) => {
+              let cleaned = text.replace(/\D/g, "");
+
+              if (cleaned.length > 2)
+                cleaned =
+                  cleaned.slice(0, 2) +
+                  "-" +
+                  cleaned.slice(2);
+
+              if (cleaned.length > 5)
+                cleaned =
+                  cleaned.slice(0, 5) +
+                  "-" +
+                  cleaned.slice(5, 9);
+
+              setManufacturingdate(cleaned);
+            }}
           />
 
           <Text style={styles.label}>Total Quantity</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter quantity"
+            placeholderTextColor="#6B7280"
             keyboardType="numeric"
             value={totalQuantity}
             onChangeText={setTotalQuantity}
@@ -271,6 +357,7 @@ export default function AddMedicine() {
           <TextInput
             style={styles.input}
             placeholder="Enter minimum stock"
+            placeholderTextColor="#6B7280"
             keyboardType="numeric"
             value={minimumStock}
             onChangeText={setMinimumStock}
@@ -490,7 +577,7 @@ const styles = StyleSheet.create({
 
   uploadSub: {
     marginTop: 4,
-    color: "#6B7280",
+    color: "#292628ff",
     fontSize: 12,
   },
 

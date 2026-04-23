@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,455 +9,668 @@ import {
   StatusBar,
 } from "react-native";
 
-import { MaterialIcons, Ionicons, FontAwesome5 } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import {
+  MaterialIcons,
+  Ionicons,
+} from "@expo/vector-icons";
+
 import { useRouter } from "expo-router";
+
+import { db } from "../firebaseConfig";
+import {
+  collection,
+  getDocs,
+} from "firebase/firestore";
 
 export default function ExpiryAlerts() {
   const router = useRouter();
 
-  const medicines = [
-    {
-      name: "Amoxicillin 500mg",
-      batch: "#AMX-9021",
-      expiry: "Oct 24, 2023",
-      stock: 42,
-      level: "CRITICAL",
-      color: "#D11A1A",
-      bg: "#FDEAEA",
-      icon: "close-circle",
-    },
-    {
-      name: "Lisinopril 10mg",
-      batch: "#LIS-4432",
-      expiry: "Nov 12, 2023",
-      stock: 115,
-      level: "HIGH RISK",
-      color: "#A84300",
-      bg: "#FFF1E8",
-      icon: "warning",
-    },
-    {
-      name: "Metformin 850mg",
-      batch: "#MET-1108",
-      expiry: "Dec 05, 2023",
-      stock: 89,
-      level: "MONITORED",
-      color: "#004AC6",
-      bg: "#E8F0FF",
-      icon: "time",
-    },
-  ];
+  const [medicines, setMedicines] =
+    useState([]);
+
+  const [sevenDays, setSevenDays] =
+    useState(0);
+
+  const [thirtyDays, setThirtyDays] =
+    useState(0);
+
+  const [sixtyDays, setSixtyDays] =
+    useState(0);
+
+  useEffect(() => {
+    loadExpiryMedicines();
+  }, []);
+
+  const loadExpiryMedicines =
+    async () => {
+      try {
+        const snapshot =
+          await getDocs(
+            collection(
+              db,
+              "medicines"
+            )
+          );
+
+        let arr = [];
+        let count7 = 0;
+        let count30 = 0;
+        let count60 = 0;
+
+        const today =
+          new Date();
+
+        snapshot.forEach(
+          (doc) => {
+            const data =
+              doc.data();
+
+            if (
+              data.expirydate
+            ) {
+              const parts =
+                data.expirydate.split(
+                  "-"
+                );
+
+              if (
+                parts.length ===
+                3
+              ) {
+                const expDate =
+                  new Date(
+                    parts[2],
+                    parts[1] -
+                      1,
+                    parts[0]
+                  );
+
+                const diff =
+                  Math.ceil(
+                    (expDate -
+                      today) /
+                      (1000 *
+                        60 *
+                        60 *
+                        24)
+                  );
+
+                if (
+                  diff >= 0
+                ) {
+                  let level =
+                    "MONITORED";
+
+                  let color =
+                    "#004AC6";
+
+                  let bg =
+                    "#E8F0FF";
+
+                  let icon =
+                    "time";
+
+                  if (
+                    diff <= 7
+                  ) {
+                    level =
+                      "CRITICAL";
+                    color =
+                      "#D11A1A";
+                    bg =
+                      "#FDEAEA";
+                    icon =
+                      "close-circle";
+                    count7++;
+                  } else if (
+                    diff <=
+                    30
+                  ) {
+                    level =
+                      "HIGH RISK";
+                    color =
+                      "#A84300";
+                    bg =
+                      "#FFF1E8";
+                    icon =
+                      "warning";
+                    count30++;
+                  } else if (
+                    diff <=
+                    60
+                  ) {
+                    count60++;
+                  }
+
+                  if (
+                    diff <=
+                    60
+                  ) {
+                    arr.push(
+                      {
+                        id: doc.id,
+                        name:
+                          data.medicineName,
+                        batch:
+                          data.category ||
+                          "N/A",
+                        expiry:
+                          data.expirydate,
+                        stock:
+                          data.totalQuantity ||
+                          0,
+                        level,
+                        color,
+                        bg,
+                        icon,
+                      }
+                    );
+                  }
+                }
+              }
+            }
+          }
+        );
+
+        setMedicines(arr);
+        setSevenDays(
+          count7
+        );
+        setThirtyDays(
+          count30
+        );
+        setSixtyDays(
+          count60
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#F7F9FB" barStyle="dark-content" />
+    <SafeAreaView
+      style={
+        styles.container
+      }
+    >
+      <StatusBar
+        backgroundColor="#F7F9FB"
+        barStyle="dark-content"
+      />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={
+          false
+        }
+      >
         {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.leftHeader}>
-            <View style={styles.avatar}>
-              <MaterialIcons name="person" size={24} color="#004AC6" />
-            </View>
-            <Text style={styles.brand}>Clinical Atelier</Text>
-          </View>
+        <View
+          style={
+            styles.header
+          }
+        >
+          <Text
+            style={
+              styles.pageTitle
+            }
+          >
+            Expiry Alerts
+          </Text>
 
-          <TouchableOpacity>
-            <MaterialIcons name="search" size={28} color="#64748B" />
+          <TouchableOpacity
+            onPress={() =>
+              router.back()
+            }
+          >
+            <MaterialIcons
+              name="arrow-back"
+              size={28}
+              color="#111"
+            />
           </TouchableOpacity>
         </View>
 
-        {/* Top Title */}
-        <Text style={styles.smallTitle}>STOCK INTEGRITY</Text>
-        <Text style={styles.pageTitle}>Expiry Alerts</Text>
-
-        {/* Main Alert Card */}
-        <View style={styles.bigCard}>
-          <View style={styles.rowBetween}>
-            <View>
-              <Text style={styles.redSmall}>7 DAYS</Text>
-              <Text style={styles.bigNumber}>12</Text>
-            </View>
-
-            <View style={styles.alertCircle}>
-              <MaterialIcons name="priority-high" size={34} color="#D11A1A" />
-            </View>
-          </View>
-
-          <Text style={styles.desc}>
-            Critical expirations requiring immediate removal.
+        {/* Big Card */}
+        <View
+          style={
+            styles.bigCard
+          }
+        >
+          <Text
+            style={
+              styles.redSmall
+            }
+          >
+            7 DAYS
           </Text>
 
-          <View style={styles.progressBg}>
-            <View style={styles.progressFill} />
-          </View>
+          <Text
+            style={
+              styles.bigNumber
+            }
+          >
+            {sevenDays}
+          </Text>
+
+          <Text
+            style={
+              styles.desc
+            }
+          >
+            Immediate
+            expiry action
+            required
+          </Text>
         </View>
 
-        {/* Mini Cards */}
-        <View style={styles.row}>
-          <View style={styles.smallCard}>
-            <Text style={styles.orangeText}>30 DAYS</Text>
-            <Text style={styles.smallNumber}>28</Text>
-            <Text style={styles.grayText}>High Risk</Text>
+        {/* Small Cards */}
+        <View
+          style={styles.row}
+        >
+          <View
+            style={
+              styles.smallCard
+            }
+          >
+            <Text
+              style={
+                styles.orangeText
+              }
+            >
+              30 DAYS
+            </Text>
+
+            <Text
+              style={
+                styles.smallNumber
+              }
+            >
+              {thirtyDays}
+            </Text>
+
+            <Text
+              style={
+                styles.grayText
+              }
+            >
+              High Risk
+            </Text>
           </View>
 
-          <View style={styles.smallCard}>
-            <Text style={styles.blueText}>60 DAYS</Text>
-            <Text style={styles.smallNumber}>45</Text>
-            <Text style={styles.grayText}>Monitored</Text>
+          <View
+            style={
+              styles.smallCard
+            }
+          >
+            <Text
+              style={
+                styles.blueText
+              }
+            >
+              60 DAYS
+            </Text>
+
+            <Text
+              style={
+                styles.smallNumber
+              }
+            >
+              {sixtyDays}
+            </Text>
+
+            <Text
+              style={
+                styles.grayText
+              }
+            >
+              Monitor
+            </Text>
           </View>
         </View>
 
         {/* Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Priority Removal</Text>
-          <MaterialIcons name="filter-list" size={28} color="#64748B" />
-        </View>
+        <Text
+          style={
+            styles.sectionTitle
+          }
+        >
+          Expiring
+          Medicines
+        </Text>
 
-        {/* Medicine Cards */}
-        {medicines.map((item, index) => (
-          <View key={index} style={styles.medicineCard}>
-            <View style={styles.rowBetween}>
-              <View>
-                <Text style={styles.medName}>{item.name}</Text>
-                <Text style={styles.batch}>Batch: {item.batch}</Text>
+        {/* List */}
+        {medicines.map(
+          (
+            item,
+            index
+          ) => (
+            <View
+              key={
+                index
+              }
+              style={
+                styles.medicineCard
+              }
+            >
+              <View
+                style={
+                  styles.rowBetween
+                }
+              >
+                <View>
+                  <Text
+                    style={
+                      styles.medName
+                    }
+                  >
+                    {
+                      item.name
+                    }
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.batch
+                    }
+                  >
+                    Category:
+                    {
+                      item.batch
+                    }
+                  </Text>
+                </View>
+
+                <View
+                  style={[
+                    styles.badge,
+                    {
+                      backgroundColor:
+                        item.bg,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.badgeText,
+                      {
+                        color:
+                          item.color,
+                      },
+                    ]}
+                  >
+                    {
+                      item.level
+                    }
+                  </Text>
+                </View>
               </View>
 
               <View
                 style={[
-                  styles.badge,
-                  { backgroundColor: item.bg },
+                  styles.rowBetween,
+                  {
+                    marginTop: 18,
+                  },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.badgeText,
-                    { color: item.color },
-                  ]}
+                <View
+                  style={
+                    styles.inline
+                  }
                 >
-                  {item.level}
-                </Text>
+                  <Ionicons
+                    name={
+                      item.icon
+                    }
+                    size={
+                      18
+                    }
+                    color={
+                      item.color
+                    }
+                  />
+
+                  <Text
+                    style={[
+                      styles.expiryText,
+                      {
+                        color:
+                          item.color,
+                      },
+                    ]}
+                  >
+                    {" "}
+                    Expires:{" "}
+                    {
+                      item.expiry
+                    }
+                  </Text>
+                </View>
+
+                <View>
+                  <Text
+                    style={
+                      styles.stockLabel
+                    }
+                  >
+                    STOCK
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.stockValue
+                    }
+                  >
+                    {
+                      item.stock
+                    }{" "}
+                    Units
+                  </Text>
+                </View>
               </View>
             </View>
+          )
+        )}
 
-            <View style={[styles.rowBetween, { marginTop: 22 }]}>
-              <View style={styles.inline}>
-                <Ionicons
-                  name={item.icon}
-                  size={18}
-                  color={item.color}
-                />
-                <Text
-                  style={[
-                    styles.expiryText,
-                    { color: item.color },
-                  ]}
-                >
-                  {" "}Expires: {item.expiry}
-                </Text>
-              </View>
+        {medicines.length ===
+          0 && (
+          <Text
+            style={{
+              textAlign:
+                "center",
+              marginTop: 30,
+              color:
+                "#666",
+              fontSize: 16,
+            }}
+          >
+            No Expiring
+            Medicines
+          </Text>
+        )}
 
-              <View style={{ alignItems: "flex-end" }}>
-                <Text style={styles.stockLabel}>STOCK</Text>
-                <Text style={styles.stockValue}>
-                  {item.stock} Units
-                </Text>
-              </View>
-            </View>
-          </View>
-        ))}
-
-        <View style={{ height: 120 }} />
+        <View
+          style={{
+            height: 50,
+          }}
+        />
       </ScrollView>
-
-      {/* Bottom Nav */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons
-            name="dashboard"
-            size={24}
-            color="#94A3B8"
-          />
-          <Text style={styles.navText}>DASHBOARD</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons
-            name="inventory-2"
-            size={24}
-            color="#94A3B8"
-          />
-          <Text style={styles.navText}>INVENTORY</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.activeNav}>
-          <MaterialIcons
-            name="notifications"
-            size={24}
-            color="#fff"
-          />
-          <Text style={styles.activeText}>ALERTS</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons
-            name="bar-chart"
-            size={24}
-            color="#94A3B8"
-          />
-          <Text style={styles.navText}>REPORTS</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F7F9FB",
-    paddingHorizontal: 16,
-  },
+const styles =
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor:
+        "#F7F9FB",
+      padding: 16,
+    },
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 24,
-  },
+    header: {
+      flexDirection:
+        "row",
+      justifyContent:
+        "space-between",
+      alignItems:
+        "center",
+      marginTop: 8,
+      marginBottom: 18,
+    },
 
-  leftHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    pageTitle: {
+      fontSize: 32,
+      fontWeight:
+        "800",
+      color:
+        "#111827",
+    },
 
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#DCEAFE",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
+    bigCard: {
+      backgroundColor:
+        "#fff",
+      borderRadius: 22,
+      padding: 20,
+      marginBottom: 16,
+    },
 
-  brand: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#004AC6",
-  },
+    redSmall: {
+      color:
+        "#D11A1A",
+      fontWeight:
+        "700",
+    },
 
-  smallTitle: {
-    fontSize: 12,
-    letterSpacing: 3,
-    color: "#6B7280",
-    marginBottom: 6,
-  },
+    bigNumber: {
+      fontSize: 54,
+      fontWeight:
+        "800",
+      color: "#111",
+    },
 
-  pageTitle: {
-    fontSize: 42,
-    fontWeight: "800",
-    color: "#111827",
-    marginBottom: 20,
-  },
+    desc: {
+      color:
+        "#555",
+      fontSize: 16,
+    },
 
-  bigCard: {
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    padding: 22,
-    marginBottom: 16,
-  },
+    row: {
+      flexDirection:
+        "row",
+      justifyContent:
+        "space-between",
+      marginBottom: 20,
+    },
 
-  rowBetween: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+    smallCard: {
+      width: "48%",
+      backgroundColor:
+        "#fff",
+      borderRadius: 20,
+      padding: 18,
+    },
 
-  redSmall: {
-    color: "#D11A1A",
-    fontWeight: "700",
-    letterSpacing: 2,
-    fontSize: 12,
-  },
+    orangeText: {
+      color:
+        "#A84300",
+      fontWeight:
+        "700",
+    },
 
-  bigNumber: {
-    fontSize: 56,
-    fontWeight: "800",
-    color: "#111",
-  },
+    blueText: {
+      color:
+        "#004AC6",
+      fontWeight:
+        "700",
+    },
 
-  alertCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#FDEAEA",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+    smallNumber: {
+      fontSize: 40,
+      fontWeight:
+        "800",
+      marginTop: 5,
+    },
 
-  desc: {
-    marginTop: 8,
-    color: "#374151",
-    fontSize: 18,
-    lineHeight: 28,
-    marginBottom: 18,
-  },
+    grayText: {
+      marginTop: 10,
+      color:
+        "#555",
+    },
 
-  progressBg: {
-    height: 6,
-    backgroundColor: "#F8D6D6",
-    borderRadius: 20,
-  },
+    sectionTitle: {
+      fontSize: 24,
+      fontWeight:
+        "800",
+      marginBottom: 14,
+    },
 
-  progressFill: {
-    width: "75%",
-    height: 6,
-    backgroundColor: "#D11A1A",
-    borderRadius: 20,
-  },
+    medicineCard: {
+      backgroundColor:
+        "#fff",
+      borderRadius: 22,
+      padding: 18,
+      marginBottom: 14,
+    },
 
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 26,
-  },
+    rowBetween: {
+      flexDirection:
+        "row",
+      justifyContent:
+        "space-between",
+      alignItems:
+        "center",
+    },
 
-  smallCard: {
-    width: "48%",
-    backgroundColor: "#fff",
-    borderRadius: 22,
-    padding: 20,
-  },
+    medName: {
+      fontSize: 20,
+      fontWeight:
+        "800",
+      color:
+        "#111",
+    },
 
-  orangeText: {
-    color: "#A84300",
-    fontWeight: "700",
-    letterSpacing: 2,
-    fontSize: 12,
-  },
+    batch: {
+      marginTop: 4,
+      color:
+        "#666",
+    },
 
-  blueText: {
-    color: "#004AC6",
-    fontWeight: "700",
-    letterSpacing: 2,
-    fontSize: 12,
-  },
+    badge: {
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 16,
+    },
 
-  smallNumber: {
-    fontSize: 44,
-    fontWeight: "800",
-    marginTop: 6,
-    color: "#111",
-  },
+    badgeText: {
+      fontSize: 11,
+      fontWeight:
+        "800",
+    },
 
-  grayText: {
-    color: "#4B5563",
-    marginTop: 18,
-    fontSize: 18,
-  },
+    inline: {
+      flexDirection:
+        "row",
+      alignItems:
+        "center",
+    },
 
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 18,
-  },
+    expiryText: {
+      fontWeight:
+        "700",
+    },
 
-  sectionTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-  },
+    stockLabel: {
+      color:
+        "#999",
+      fontSize: 12,
+    },
 
-  medicineCard: {
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 16,
-  },
-
-  medName: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#111",
-  },
-
-  batch: {
-    marginTop: 4,
-    fontSize: 16,
-    color: "#6B7280",
-  },
-
-  badge: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-  },
-
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
-
-  inline: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  expiryText: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  stockLabel: {
-    color: "#9CA3AF",
-    fontSize: 14,
-  },
-
-  stockValue: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#111",
-  },
-
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingTop: 14,
-    paddingBottom: 24,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-
-  navItem: {
-    alignItems: "center",
-  },
-
-  navText: {
-    marginTop: 6,
-    fontSize: 11,
-    color: "#94A3B8",
-  },
-
-  activeNav: {
-    backgroundColor: "#2563EB",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 18,
-    alignItems: "center",
-  },
-
-  activeText: {
-    marginTop: 6,
-    fontSize: 11,
-    color: "#fff",
-  },
-});
+    stockValue: {
+      fontSize: 17,
+      fontWeight:
+        "800",
+      color:
+        "#111",
+    },
+  });

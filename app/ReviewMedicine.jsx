@@ -6,8 +6,14 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+
+import {
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
+
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -24,61 +30,148 @@ export default function ReviewMedicine() {
     minimumStock,
     buyPrice,
     sellPrice,
+    qty,
+    alertQty,
+    image,
+    id,
   } = useLocalSearchParams();
 
+  // Edit Page
   const handleEdit = () => {
-    router.back();
+    router.push({
+      pathname: "/EditMedicine",
+      params: {
+        id,
+        medicineName,
+        type,
+        category,
+        expirydate,
+        manufacturingdate,
+        totalQuantity,
+        minimumStock,
+        buyPrice,
+        sellPrice,
+        qty,
+        alertQty,
+        image,
+      },
+    });
   };
 
+  // Delete (preview only)
   const handleDelete = () => {
-    router.back();
+    Alert.alert(
+      "Delete Medicine",
+      "Do you want to remove this medicine?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => router.back(),
+        },
+      ]
+    );
   };
 
+  // Save and go list
   const handleSave = () => {
-    alert("Medicine Saved Successfully ✅");
-    router.push("/Addmedicine");
+    Alert.alert(
+      "Success",
+      "Medicine Saved Successfully ✅"
+    );
+
+    router.replace("/Addmedicine");
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 100,
+        }}
+      >
+        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => router.back()}
+          >
             <MaterialIcons
               name="arrow-back"
-              size={24}
+              size={22}
               color="#111"
             />
           </TouchableOpacity>
 
-          <Text style={styles.title}>Review Medicine</Text>
+          <Text style={styles.title}>
+            Review Medicine
+          </Text>
 
-          <View style={{ width: 24 }} />
+          <View style={{ width: 42 }} />
         </View>
 
+        {/* Card */}
         <View style={styles.card}>
-          <Text style={styles.name}>{medicineName}</Text>
+          <View style={styles.iconBox}>
+            <MaterialIcons
+              name="medical-services"
+              size={32}
+              color="#004AC6"
+            />
+          </View>
 
-          <Text style={styles.item}>Type: {type}</Text>
-          <Text style={styles.item}>Category: {category}</Text>
-          <Text style={styles.item}>Expiry: {expirydate}</Text>
-          <Text style={styles.item}>
-            MFG: {manufacturingdate}
+          <Text style={styles.name}>
+            {medicineName}
           </Text>
+
+          <View style={styles.line} />
+
           <Text style={styles.item}>
-            Quantity: {totalQuantity}
+            Type: {type}
           </Text>
+
           <Text style={styles.item}>
-            Minimum Stock: {minimumStock}
+            Category: {category}
           </Text>
+
+          <Text style={styles.item}>
+            Expiry Date: {expirydate}
+          </Text>
+
+          <Text style={styles.item}>
+            Manufacturing Date:{" "}
+            {manufacturingdate}
+          </Text>
+
+          <Text style={styles.item}>
+            Total Quantity:{" "}
+            {totalQuantity}
+          </Text>
+
+          <Text style={styles.item}>
+            Minimum Stock:{" "}
+            {minimumStock}
+          </Text>
+
           <Text style={styles.item}>
             Buy Price: ₹{buyPrice}
           </Text>
+
           <Text style={styles.item}>
             Sell Price: ₹{sellPrice}
           </Text>
+
+          <Text style={styles.item}>
+            Alert Qty: {alertQty}
+          </Text>
         </View>
 
+        {/* Action Buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity
             style={styles.editBtn}
@@ -89,7 +182,10 @@ export default function ReviewMedicine() {
               size={20}
               color="#004AC6"
             />
-            <Text style={styles.editText}>Edit</Text>
+
+            <Text style={styles.editText}>
+              Edit
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -101,17 +197,26 @@ export default function ReviewMedicine() {
               size={20}
               color="#BA1A1A"
             />
-            <Text style={styles.deleteText}>Delete</Text>
+
+            <Text style={styles.deleteText}>
+              Delete
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      <TouchableOpacity onPress={handleSave}>
+      {/* Bottom Save Button */}
+      <TouchableOpacity
+        onPress={handleSave}
+        activeOpacity={0.9}
+      >
         <LinearGradient
           colors={["#004AC6", "#2563EB"]}
           style={styles.saveBtn}
         >
-          <Text style={styles.saveText}>Save Medicine</Text>
+          <Text style={styles.saveText}>
+            Save Medicine
+          </Text>
         </LinearGradient>
       </TouchableOpacity>
     </SafeAreaView>
@@ -129,43 +234,71 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 25,
+    marginBottom: 22,
+  },
+
+  backBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   title: {
     fontSize: 22,
     fontWeight: "800",
+    color: "#111",
   },
 
   card: {
     backgroundColor: "#fff",
-    borderRadius: 22,
-    padding: 18,
-    marginBottom: 25,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 24,
+  },
+
+  iconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    backgroundColor: "#EAF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    marginBottom: 14,
   },
 
   name: {
     fontSize: 24,
     fontWeight: "800",
-    marginBottom: 14,
     color: "#004AC6",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+
+  line: {
+    height: 1,
+    backgroundColor: "#EEF2F7",
+    marginBottom: 14,
   },
 
   item: {
     fontSize: 16,
-    marginBottom: 10,
     color: "#333",
+    marginBottom: 11,
+    fontWeight: "500",
   },
 
   actionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 30,
   },
 
   editBtn: {
     width: "48%",
-    height: 55,
+    height: 56,
     borderRadius: 16,
     backgroundColor: "#EAF2FF",
     justifyContent: "center",
@@ -175,7 +308,7 @@ const styles = StyleSheet.create({
 
   deleteBtn: {
     width: "48%",
-    height: 55,
+    height: 56,
     borderRadius: 16,
     backgroundColor: "#FEE2E2",
     justifyContent: "center",
@@ -184,15 +317,17 @@ const styles = StyleSheet.create({
   },
 
   editText: {
-    marginLeft: 6,
+    marginLeft: 7,
     color: "#004AC6",
     fontWeight: "700",
+    fontSize: 15,
   },
 
   deleteText: {
-    marginLeft: 6,
+    marginLeft: 7,
     color: "#BA1A1A",
     fontWeight: "700",
+    fontSize: 15,
   },
 
   saveBtn: {
