@@ -110,7 +110,7 @@ export default function AddMedicine() {
       return;
     }
 
-    router.push({
+    router.replace({
       pathname: "/ReviewMedicine",
       params: {
         medicineName,

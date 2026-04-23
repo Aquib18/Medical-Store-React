@@ -190,8 +190,8 @@
 //     fontWeight: "bold",
 //   },
 // });
-import React, { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import React, { useState, useCallback } from "react";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -221,68 +221,70 @@ export default function Dashboard() {
   const [expiryCount, setExpiryCount] =
     useState(0);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData();
+    }, [])
+  );
 
-const loadDashboardData = async () => {
-  try {
-    const snapshot = await getDocs(
-      collection(db, "medicines")
-    );
-
-    let total = snapshot.size;
-    let lowStock = 0;
-    let expirySoon = 0;
-
-    const today = new Date();
-
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-
-      // LOW STOCK
-      const qty = Number(
-        data.totalQuantity || 0
+  const loadDashboardData = async () => {
+    try {
+      const snapshot = await getDocs(
+        collection(db, "medicines")
       );
 
-      const min = Number(
-        data.minimumStock || 0
-      );
+      let total = snapshot.size;
+      let lowStock = 0;
+      let expirySoon = 0;
 
-      if (qty <= min) {
-        lowStock++;
-      }
+      const today = new Date();
 
-      // EXPIRY SOON
-      if (data.expirydate) {
-        const parts =
-          data.expirydate.split("-");
+      snapshot.forEach((doc) => {
+        const data = doc.data();
 
-        const expDate = new Date(
-          parts[2],
-          parts[1] - 1,
-          parts[0]
+        // LOW STOCK
+        const qty = Number(
+          data.totalQuantity || 0
         );
 
-        const diff = Math.ceil(
-          (expDate - today) /
-            (1000 * 60 * 60 * 24)
+        const min = Number(
+          data.minimumStock || 0
         );
 
-        if (diff >= 0 && diff <= 30) {
-          expirySoon++;
+        if (qty <= min) {
+          lowStock++;
         }
-      }
-    });
 
-    setTotalMedicines(total);
-    setLowStockCount(lowStock);
-    setExpiryCount(expirySoon);
+        // EXPIRY SOON
+        if (data.expirydate) {
+          const parts =
+            data.expirydate.split("-");
 
-  } catch (error) {
-    console.log(error);
-  }
-};
+          const expDate = new Date(
+            parts[2],
+            parts[1] - 1,
+            parts[0]
+          );
+
+          const diff = Math.ceil(
+            (expDate - today) /
+            (1000 * 60 * 60 * 24)
+          );
+
+          if (diff >= 0 && diff <= 60) {
+            expirySoon++;
+          }
+        }
+      });
+
+      setTotalMedicines(total);
+      setLowStockCount(lowStock);
+      setExpiryCount(expirySoon);
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -318,7 +320,14 @@ const loadDashboardData = async () => {
             </Text>
           </View>
 
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() =>
+              router.push(
+                "/Lowstock"
+              )
+            }
+          >
             <Text style={styles.cardValue}>
               {lowStockCount}
             </Text>
@@ -326,7 +335,7 @@ const loadDashboardData = async () => {
             <Text style={styles.cardLabel}>
               Low Stock
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Alerts */}
@@ -348,6 +357,9 @@ const loadDashboardData = async () => {
 
         <TouchableOpacity
           style={styles.alertBox}
+          onPress={() =>
+            router.push("/Lowstock")
+          }
         >
           <Text style={styles.alertText}>
             📦 {lowStockCount} Items Low

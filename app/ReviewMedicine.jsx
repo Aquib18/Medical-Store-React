@@ -17,6 +17,9 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
+import { db } from "../firebaseConfig";
+import { collection, addDoc } from "firebase/firestore";
+
 export default function ReviewMedicine() {
   const router = useRouter();
 
@@ -78,13 +81,33 @@ export default function ReviewMedicine() {
   };
 
   // Save and go list
-  const handleSave = () => {
-    Alert.alert(
-      "Success",
-      "Medicine Saved Successfully ✅"
-    );
+  const handleSave = async () => {
+    try {
+      await addDoc(collection(db, "medicines"), {
+        medicineName: medicineName || "",
+        type: type || "",
+        category: category || "",
+        expirydate: expirydate || "",
+        manufacturingdate: manufacturingdate || "",
+        totalQuantity: totalQuantity || "",
+        minimumStock: minimumStock || "",
+        buyPrice: buyPrice || "",
+        sellPrice: sellPrice || "",
+        qty: qty || "",
+        alertQty: alertQty || "",
+        image: image || "",
+        createdAt: new Date(),
+      });
 
-    router.replace("/Addmedicine");
+      Alert.alert(
+        "Success",
+        "Medicine Saved Successfully ✅"
+      );
+
+      router.replace("/Addmedicine");
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
   };
 
   return (

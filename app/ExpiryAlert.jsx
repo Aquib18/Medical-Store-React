@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 
 import { db } from "../firebaseConfig";
 import {
@@ -37,9 +37,11 @@ export default function ExpiryAlerts() {
   const [sixtyDays, setSixtyDays] =
     useState(0);
 
-  useEffect(() => {
-    loadExpiryMedicines();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadExpiryMedicines();
+    }, [])
+  );
 
   const loadExpiryMedicines =
     async () => {
@@ -339,138 +341,95 @@ export default function ExpiryAlerts() {
         </Text>
 
         {/* List */}
-        {medicines.map(
-          (
-            item,
-            index
-          ) => (
-            <View
-              key={
-                index
-              }
-              style={
-                styles.medicineCard
-              }
-            >
-              <View
-                style={
-                  styles.rowBetween
-                }
-              >
-                <View>
-                  <Text
-                    style={
-                      styles.medName
-                    }
-                  >
-                    {
-                      item.name
-                    }
-                  </Text>
 
-                  <Text
-                    style={
-                      styles.batch
-                    }
-                  >
-                    Category:
-                    {
-                      item.batch
-                    }
-                  </Text>
-                </View>
+{medicines.map((item, index) => (
+  <TouchableOpacity
+    key={index}
+    activeOpacity={0.9}
+    onPress={() =>
+      router.replace({
+        pathname: "/MedicineDetails",
+        params: {
+          id: item.id,
+          medicineName: item.name,
+          category: item.batch,
+          expirydate: item.expiry,
+          totalQuantity: item.stock,
+        },
+      })
+    }
+  >
+    <View style={styles.medicineCard}>
+      <View style={styles.rowBetween}>
+        <View>
+          <Text style={styles.medName}>
+            {item.name}
+          </Text>
 
-                <View
-                  style={[
-                    styles.badge,
-                    {
-                      backgroundColor:
-                        item.bg,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.badgeText,
-                      {
-                        color:
-                          item.color,
-                      },
-                    ]}
-                  >
-                    {
-                      item.level
-                    }
-                  </Text>
-                </View>
-              </View>
+          <Text style={styles.batch}>
+            Category: {item.batch}
+          </Text>
+        </View>
 
-              <View
-                style={[
-                  styles.rowBetween,
-                  {
-                    marginTop: 18,
-                  },
-                ]}
-              >
-                <View
-                  style={
-                    styles.inline
-                  }
-                >
-                  <Ionicons
-                    name={
-                      item.icon
-                    }
-                    size={
-                      18
-                    }
-                    color={
-                      item.color
-                    }
-                  />
+        <View
+          style={[
+            styles.badge,
+            {
+              backgroundColor: item.bg,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.badgeText,
+              {
+                color: item.color,
+              },
+            ]}
+          >
+            {item.level}
+          </Text>
+        </View>
+      </View>
 
-                  <Text
-                    style={[
-                      styles.expiryText,
-                      {
-                        color:
-                          item.color,
-                      },
-                    ]}
-                  >
-                    {" "}
-                    Expires:{" "}
-                    {
-                      item.expiry
-                    }
-                  </Text>
-                </View>
+      <View
+        style={[
+          styles.rowBetween,
+          { marginTop: 18 },
+        ]}
+      >
+        <View style={styles.inline}>
+          <Ionicons
+            name={item.icon}
+            size={18}
+            color={item.color}
+          />
 
-                <View>
-                  <Text
-                    style={
-                      styles.stockLabel
-                    }
-                  >
-                    STOCK
-                  </Text>
+          <Text
+            style={[
+              styles.expiryText,
+              {
+                color: item.color,
+              },
+            ]}
+          >
+            {" "}Expires: {item.expiry}
+          </Text>
+        </View>
 
-                  <Text
-                    style={
-                      styles.stockValue
-                    }
-                  >
-                    {
-                      item.stock
-                    }{" "}
-                    Units
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )
-        )}
+        <View>
+          <Text style={styles.stockLabel}>
+            STOCK
+          </Text>
+
+          <Text style={styles.stockValue}>
+            {item.stock} Units
+          </Text>
+        </View>
+      </View>
+    </View>
+  </TouchableOpacity>
+))}
 
         {medicines.length ===
           0 && (
